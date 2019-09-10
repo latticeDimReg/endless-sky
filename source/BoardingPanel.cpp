@@ -54,7 +54,7 @@ namespace {
 
 // Constructor.
 BoardingPanel::BoardingPanel(PlayerInfo &player, const shared_ptr<Ship> &victim)
-	: player(player), you(player.FlagshipPtr()), victim(victim),
+	: player(player), you(player.FlagshipPtr()), victim(victim), 
 	attackOdds(*you, *victim), defenseOdds(*victim, *you)
 {
 	// The escape key should close this panel rather than bringing up the main menu.
@@ -165,6 +165,17 @@ void BoardingPanel::Draw()
 		info.SetCondition("can attack");
 	if(CanAttack())
 		info.SetCondition("can defend");
+    //Erik Gustafson Edit
+    if(CanDiscussBribe())
+        //button shows up
+        info.SetCondition("can discuss bribe");
+    if(CanAcceptBribe())
+        //button shows up
+        info.SetCondition("can accept bribe");
+    if(CanAcceptBribe())
+        //button shows up
+        info.SetCondition("can decline bribe");
+    //End Edit
 	
 	// This should always be true, but double check.
 	int crew = 0;
@@ -202,7 +213,7 @@ void BoardingPanel::Draw()
 		info.SetString("defense odds",
 			Round(100. * (1. - defenseOdds.Odds(vCrew, crew))) + "%");
 		info.SetString("defense casualties",
-			Round(defenseOdds.DefenderCasualties(vCrew, crew)));
+                       Round(defenseOdds.DefenderCasualties(vCrew, crew)));
 	}
 	
 	const Interface *interface = GameData::Interfaces().Get("boarding");
@@ -402,6 +413,69 @@ bool BoardingPanel::KeyDown(SDL_Keycode key, Uint16 mod, const Command &command,
 			}
 		}
 	}
+    //Erik Gustafson Edit
+    else if((key == 'b') && CanDiscussBribe())
+    {
+        // A ship that self-destructs checks once when you board it, and again
+        // when you try to demand a bribe from it, to see if it will self-destruct. This is
+        // so that capturing will be harder than plundering.
+        messages.push_back(to_string(victim->IsSpecial()));
+        if(Random::Real() < victim->Attributes().Get("self destruct"))
+        {
+            victim->SelfDestruct();
+            GetUI()->Pop(this);
+            GetUI()->Push(new Dialog("The moment you step onto the ship to discuss a bribe, a series of explosions rocks the enemy ship. They appear to have set off their self-destruct sequence..."));
+            return true;
+        }
+        isBribing = true;
+        //Calculate the bribe to offer
+        //use a linear function
+        
+        int crew = you->Crew();
+        int vCrew = victim ? victim->Crew() : 0;
+        int64_t bribe = (int64_t)( victim->ChassisCost()*attackOdds.Odds(crew, vCrew)/2);
+        int64_t victimbribe = 0;
+        if (bribe < 100000)
+            victimbribe = bribe;
+        else
+            victimbribe = 100000;
+        messages.push_back("They offer you " + to_string(victimbribe) + " credits");
+        messages.push_back("to repair their ship and leave them alone.");
+    }
+    else if (((key == 'a') || (key == 'd')) && CanAcceptBribe())
+    {
+        //what happens if you accept the bribe
+        
+        int crew = you->Crew();
+        int vCrew = victim ? victim->Crew() : 0;
+        int64_t victimbribe = (int64_t)(((float) victim->Cost())*attackOdds.Odds(crew, vCrew)/2);
+        if (key == 'a')
+        {
+        //repair the ship
+            victim->Restore();
+            //Victim->hull = max(victim->hull, victim->MinimumHull());
+            //victim->isDisabled = false;
+            player.Accounts().AddCredits(victimbribe);
+            //make the victim flee
+            victim->SetPersonality(Personality::Escaper());
+            
+            auto dest = (*player.GetSystem()->Links().begin());
+            const System *system = dest;
+            //set up code to
+            victim->SetTargetSystem(system);
+            isBribing = false;
+            doneBribing = true;
+        }
+        else if (key == 'd')
+        {
+            //build this up later to include the enemies attacking because they will not be left alone...
+            
+            isBribing = false;
+            doneBribing = true;
+        }
+        
+    }
+    //End Erik Gustafson Edit
 	else if(command.Has(Command::INFO))
 		GetUI()->Push(new ShipInfoPanel(player));
 	
@@ -472,6 +546,9 @@ bool BoardingPanel::CanTake() const
 		return false;
 	if(static_cast<unsigned>(selected) >= plunder.size())
 		return false;
+    //can't plunder if you've accepted a bribe
+    if(doneBribing)
+        return true;
 	
 	return plunder[selected].CanTake(*you);
 }
@@ -484,7 +561,11 @@ bool BoardingPanel::CanCapture() const
 	// You can't click the "capture" button if you're already in combat mode.
 	if(isCapturing || playerDied)
 		return false;
-	
+	//gustafson edit
+    //can't attack if you've accepted bribe (cuz that makes you a reprehensible person)
+    if(doneBribing)
+        return false;
+    //end gustafson edit
 	// If your ship or the other ship has been captured:
 	if(!you->IsYours())
 		return false;
@@ -504,7 +585,33 @@ bool BoardingPanel::CanAttack() const
 	return isCapturing;
 }
 
+//Gustafson Edit
+bool BoardingPanel::CanAcceptBribe() const
+{
+    return isBribing;
+}
 
+bool BoardingPanel::CanDiscussBribe() const
+{
+    // you can't discuss a bribe in combat or if this ship is the result of a mission
+    if(isCapturing || playerDied || victim->IsBribable())
+        return false;
+    // you can't start discussing a bribe if you're already talking
+    if(isBribing || doneBribing)
+        return false;
+    // you can't discuss a bribe if you've already captured the ship
+    if(!you->IsYours())
+        return false;
+    if(victim->IsYours())
+        return false;
+    if(!victim->IsCapturable())
+        return false;
+    //you can't discuss a bribe if you've attacked the crew
+    if(!isFirstCaptureAction)
+        return false;
+    return true;
+}
+//End Gustafson Edit
 
 // Functions for BoardingPanel::Plunder:
 
