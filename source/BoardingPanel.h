@@ -26,7 +26,6 @@ class PlayerInfo;
 class Ship;
 
 
-
 // This panel is displayed whenever your flagship boards another ship, to give
 // you a choice of what to plunder or whether to attempt to capture it. The
 // items you can plunder are shown in a list sorted by value per ton. Ship
@@ -55,6 +54,10 @@ private:
 	bool CanCapture() const;
 	// Check if you are in the midst of hand to hand combat.
 	bool CanAttack() const;
+    // Check if you can accept the bribe
+    bool CanAcceptBribe() const;
+    // Check if you can decline the bribe
+    bool CanDiscussBribe() const;
 	
 	
 private:
@@ -116,6 +119,10 @@ private:
 	
 	bool playerDied = false;
 	bool isCapturing = false;
+    //Erik Edit Start
+    bool isBribing = false;
+    bool doneBribing = false;
+    //Erik Edit End
 	bool isFirstCaptureAction = true;
 	// Calculating the odds of combat success, and the expected casualties, is
 	// non-trivial. So, cache the results for all crew amounts up to full.

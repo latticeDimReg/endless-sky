@@ -605,7 +605,7 @@ trade
 		"steam"
 		"steroids"
 		"stolen pharmaceuticals"
-	commodity "Highly Illegal Substances"
+	commodity "Highly Illegal Substance"
 		"death sticks"
 		"fire apples"
 		"hot wings"

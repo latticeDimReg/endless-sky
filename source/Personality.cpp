@@ -375,6 +375,7 @@ Personality Personality::Escaper()
     return escaper;
 }
 
+
 void Personality::Parse(const DataNode &node, int index, bool remove)
 {
 	const string &token = node.Token(index);

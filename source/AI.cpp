@@ -500,6 +500,15 @@ void AI::Step(const PlayerInfo &player)
 					double &threshold = appeasmentThreshold[it.get()];
 					threshold = max((1. - health) + .1, threshold);
 				}
+                // Edit By Erik Gustafson
+                // Sends a hail out offering a bribe if
+                if(gov->IsEnemy() && !flagship->IsDisabled() && !it->IsSpecial())
+                {
+                    //Check if the flagship has a stronger crew than the disabled ship
+                    Messages::Add(gov->GetName() + " " + it->Noun() + " \"" + it->Name()
+                                      + "\": We'll pay you to patch up our ship and leave us alone!");
+                    //Need to add in code here to allow the ship to leave the system
+                }
 				continue;
 			}
 		}
@@ -936,8 +945,6 @@ void AI::AskForHelp(Ship &ship, bool &isStranded, const Ship *flagship)
 	else
 		isStranded = false;
 }
-
-
 
 // Determine if the selected ship is physically able to render assistance.
 bool AI::CanHelp(const Ship &ship, const Ship &helper, const bool needsFuel)
@@ -1962,6 +1969,7 @@ void AI::Attack(Ship &ship, Command &command, const Ship &target)
 	{
 		// If this ship can use reverse thrusters, consider doing so.
 		double reverseSpeed = ship.MaxReverseVelocity();
+        // checks if its faster to go in reverse or if
 		if(reverseSpeed && (reverseSpeed >= min(target.MaxVelocity(), ship.MaxVelocity())
 				|| target.Velocity().Dot(-d.Unit()) <= reverseSpeed))
 		{
@@ -1986,7 +1994,7 @@ void AI::Attack(Ship &ship, Command &command, const Ship &target)
 void AI::MoveToAttack(Ship &ship, Command &command, const Body &target)
 {
 	Point d = target.Position() - ship.Position();
-	
+    
 	// First of all, aim in the direction that will hit this target.
 	command.SetTurn(TurnToward(ship, TargetAim(ship, target)));
 	
@@ -1997,6 +2005,12 @@ void AI::MoveToAttack(Ship &ship, Command &command, const Body &target)
 	double diameter = max(200., circumference / PI);
 	
 	// This isn't perfect, but it works well enough.
+    
+    // If the target is with in the 180 degree forward arc of your ship and the distance is greater
+    // than the turning radius
+    // or
+    // If your ship is moving away from the target and is within a 50 degree forward arc
+    // go forward
 	if((ship.Facing().Unit().Dot(d) >= 0. && d.Length() > diameter)
 			|| (ship.Velocity().Dot(d) < 0. && ship.Facing().Unit().Dot(d.Unit()) >= .9))
 		command |= Command::FORWARD;

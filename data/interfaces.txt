@@ -652,7 +652,7 @@ interface "boarding"
 	string "defense casualties"
 		from 330 28
 		align right
-	
+		
 	active if "can take"
 	button t "_Take"
 		center -235 115
@@ -667,7 +667,6 @@ interface "boarding"
 	button c "Attempt _Capture"
 		center -40 115
 		dimensions 140 30
-		
 
 	active if "can discuss bribe"
 	button b "Discuss _Bribe"
@@ -683,7 +682,7 @@ interface "boarding"
 	button d "_Defend"
 		center 210 185
 		dimensions 80 30
-		
+	
 	active if "can accept bribe"
 	button a "_Accept"
 		center 120 220
