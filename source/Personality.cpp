@@ -368,7 +368,12 @@ Personality Personality::Defender()
 	return defender;
 }
 
-
+Personality Personality::Escaper()
+{
+    Personality escaper;
+    escaper.flags = PACIFIST | FLEEING ;
+    return escaper;
+}
 
 void Personality::Parse(const DataNode &node, int index, bool remove)
 {

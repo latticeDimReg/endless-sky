@@ -891,6 +891,8 @@ void Ship::SetGovernment(const Government *government)
 
 void Ship::SetIsSpecial(bool special)
 {
+    if(special)
+        isBribable = false;
 	isSpecial = special;
 }
 
@@ -2043,6 +2045,13 @@ bool Ship::IsDisabled() const
 	bool needsCrew = RequiredCrew() != 0;
 	return (hull < minimumHull || (!crew && needsCrew));
 }
+
+//gustafson edit
+bool Ship::IsBribable() const
+{
+    return isBribable;
+}
+//end gustafson edit
 
 
 

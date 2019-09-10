@@ -76,6 +76,9 @@ public:
 	
 	// Personality to use for ships defending a planet from domination:
 	static Personality Defender();
+    
+    // Personality to use for fleeing ships that offered a bribe
+    static Personality Escaper();
 	
 	
 private:

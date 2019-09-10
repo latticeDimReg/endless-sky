@@ -204,6 +204,9 @@ public:
 	bool IsDisabled() const;
 	bool IsBoarding() const;
 	bool IsLanding() const;
+    //Gustafson Edit
+    bool IsBribable() const;
+    //end edit
 	// Check if this ship is currently able to begin landing on its target.
 	bool CanLand() const;
 	// Check if some condition is keeping this ship from acting. (That is, it is
@@ -426,6 +429,9 @@ private:
 	bool hasBoarded = false;
 	bool isThrusting = false;
 	bool neverDisabled = false;
+    //gustafson Edit
+    bool isBribable = true;
+    // end edit
 	bool isCapturable = true;
 	bool isInvisible = false;
 	int customSwizzle = -1;
